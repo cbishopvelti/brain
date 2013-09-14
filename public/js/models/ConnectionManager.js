@@ -9,7 +9,14 @@ Brain.ConnectionManager = Backbone.Collection.extend({
 
 	initialize: function(options){
 
+	}, 
+
+	//gets a random connection
+	getTransport: function(){
+
+		return _.sample(this.models);
 	}
+
 
 });
 

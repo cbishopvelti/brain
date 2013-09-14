@@ -5,7 +5,7 @@ var reattachMediaStream = null;
 var webrtcDetectedBrowser = null;
 
 if (navigator.mozGetUserMedia) {
-  console.log("This appears to be Firefox");
+  // console.log("This appears to be Firefox");
 
   webrtcDetectedBrowser = "firefox";
 
@@ -24,13 +24,13 @@ if (navigator.mozGetUserMedia) {
 
   // Attach a media stream to an element.
   attachMediaStream = function(element, stream) {
-    console.log("Attaching media stream");
+    // console.log("Attaching media stream");
     element.mozSrcObject = stream;
     element.play();
   };
 
   reattachMediaStream = function(to, from) {
-    console.log("Reattaching media stream");
+    // console.log("Reattaching media stream");
     to.mozSrcObject = from.mozSrcObject;
     to.play();
   };
@@ -44,7 +44,7 @@ if (navigator.mozGetUserMedia) {
     return [];
   };
 } else if (navigator.webkitGetUserMedia) {
-  console.log("This appears to be Chrome");
+  // console.log("This appears to be Chrome");
 
   webrtcDetectedBrowser = "chrome";
 
@@ -57,7 +57,7 @@ if (navigator.mozGetUserMedia) {
 
   // Attach a media stream to an element.
   attachMediaStream = function(element, stream) {
-    console.log("attachMediaStream");
+    // console.log("attachMediaStream");
     element.src = webkitURL.createObjectURL(stream);
   };
 

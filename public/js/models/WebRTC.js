@@ -8,8 +8,11 @@ Brain.WebRTC = Backbone.Model.extend({
 
 	to: undefined, //who we are connecting to
 
+	to: undefined, //the connection address that we are connectiong to
+
 	us: undefined, //our address
 
+	usConnection: undefined, //our connection address
 
 	dataConnection: undefined,
 
@@ -20,7 +23,9 @@ Brain.WebRTC = Backbone.Model.extend({
 
 		var servers = undefined;
 
-		this.pc = new RTCPeerConnection(servers);
+		this.pc = new RTCPeerConnection(servers, {
+			optional: [{RtpDataChannels: true}]
+		});
 
 		// this.dataChannel = this.pc.createDataChannel("data");
 		this.pc.ondatachannel = this.onDataChannel.createDelegate(this);
@@ -45,28 +50,42 @@ Brain.WebRTC = Backbone.Model.extend({
 
 
 	onCandidiateMessage: function(event){
-		
+
+		if(
+			(
+				event.message.request !== "iceCandidate_from_client"
+				&& event.message.request !== "iceCandidate_from_server"
+			)
+			|| "" + event.message.to !== "" + this.us
+			|| "" + event.message.toConnection !== "" + this.usConnection
+		){
+			return;
+		}
+
 		if(this.pc == undefined){
 			this.initializeRTC();
 		}
 
-		var data = event.data;
-
-		var signal = JSON.parse(data);
-
 		//dk why this happens
-		if(signal.message == null 
-			|| signal.message == "null"
+		if(event.message.message == null 
+			|| event.message.message == "null"
 		){
 			// this.pc.addIceCandidate( null );
 			return;
 		}
-		this.pc.addIceCandidate(new RTCIceCandidate(JSON.parse( signal.message )));
+
+		console.log("////// addIceCandidate", event.message.message);
+
+		console.log("003", JSON.parse(event.message.message));
+
+		this.pc.addIceCandidate(
+			new RTCIceCandidate(JSON.parse( event.message.message ))
+		);
 	}, 	
 
 	onIceCandidate: function(event){
 
-		console.log("onIceCandidate ", event.candidate);
+		console.log("onIceCandidate ", event);
 
 		// ((this.type == "server") ? "answer" : "offer")
 
@@ -83,8 +102,7 @@ Brain.WebRTC = Backbone.Model.extend({
 	onAddStream: function(event){
 
 		//when a stream gets added
-		console.log("onAddStream =======================");
-
+		console.log("WebRTC: onAddStream");
 
 		//new video for each stream
 		var vid = $("<video autoplay=\"true\"></video>");
@@ -104,7 +122,6 @@ Brain.WebRTC = Backbone.Model.extend({
 
 		console.log("WebRTC: gotDescription", this.to, this.us);
 
-		console.log("this.pc.setLocalDescription");
 		this.pc.setLocalDescription(desc);
 
 		// ((this.type == "server") ? "answer": "offer")
@@ -113,11 +130,14 @@ Brain.WebRTC = Backbone.Model.extend({
 			"request": "sdp_from_" + this.type,
 			"to" : this.to,
 			"from" : this.us,
+			"fromConnection": this.usConnection,
 			"message": JSON.stringify(desc) 
 		});
 	}, 
 
 	onDataChannel: function(event){
+
+		console.log("========= ONDATACHANNEL");
 
 		this.dataConnection = event.channel;
 

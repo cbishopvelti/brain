@@ -15,10 +15,11 @@ Brain.WebRTCClient = Brain.WebRTC.extend({
 		this.onAnswerMessage = this.onAnswerMessage.createDelegate(this);
 		this.onCandidiateMessage = this.onCandidiateMessage.createDelegate(this);
 
-		this.transport.on("message", this.onCandidiateMessage);
 		this.transport.once("message", this.onAnswerMessage);
+		this.transport.on("message", this.onCandidiateMessage);
 
 		//initialize the RTC
+		this.trigger("initializeRTC", [this]);
 		this.initializeRTC();
 	}, 
 
@@ -26,16 +27,24 @@ Brain.WebRTCClient = Brain.WebRTC.extend({
 	onAnswerMessage: function(event ){
 		console.log("WebRTCClient: onAnswerMessage");
 
-		if(event.message.request !== "" 
+		if(event.message.request !== "sdp_from_server" 
 			|| "" + event.message.to !== "" + this.us
+			|| "" + event.message.toConnection !== "" + this.usConnection
 		){
 			//message wasn't ment for us, 
 			//we should probably rebind our event
-			console.error("onAnswerMessage returned unexpected paramaters");
+			// console.error(
+			// 	"onAnswerMessage returned unexpected paramaters, ",
+			// 	event.message.request, 
+			// 	event.message.to
+			// );
+			
+			this.transport.once("message", this.onAnswerMessage);
+
 			return;
 		}
 
-		var message = JSON.parse(event.message.message);
+		var message = event.message.message;
 
 		var sdp = JSON.parse(message);
 		this.pc.setRemoteDescription(

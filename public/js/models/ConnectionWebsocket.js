@@ -8,7 +8,12 @@ Brain.ConnectionWebsocket = Brain.Connection.extend({
 
 	socket: undefined,
 
+	type: undefined, 
+
 	initialize: function(options){
+
+		this.set("type", "websocket");
+		this.set("to", "0"); //this is the server
 
 		this.socket = new WebSocket("ws://localhost:8124/", "echo");
 

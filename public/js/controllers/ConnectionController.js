@@ -14,7 +14,9 @@ Brain.ConnectionController = Backbone.Model.extend({
 		//setup initial Websocket connection, to descover other websocket connections.
 		this.connectionManager = new Brain.ConnectionManager(); //TODO: we havent used this yet
 
-		window.connectionManager = this; //DEBUG ONLY, remove
+		window.connectionController = this; //DEBUG ONLY, remove
+		window.connectionManager = this.connectionManager;
+
 
 		//create the initial connection to the server. 
 		var initialConnection = new Brain.ConnectionWebsocket();
@@ -23,7 +25,7 @@ Brain.ConnectionController = Backbone.Model.extend({
 
 		initialConnection.once(
 			"message", 
-			this.initialConnectionOnMessage.createDelegate(this)
+			this.initialConnectionOnMessage.createDelegate(this, [initialConnection], true)
 		);
 
 		//connect to the cloud
@@ -41,7 +43,10 @@ Brain.ConnectionController = Backbone.Model.extend({
 	/*
 	 The server will first tell us who we are
 	*/
-	initialConnectionOnMessage: function(event){
+	initialConnectionOnMessage: function( 
+		event, 
+		initialConnection 
+	){
 
 		console.log("ConnectionController: initialConnectionOnMessage", 
 			event
@@ -53,6 +58,8 @@ Brain.ConnectionController = Backbone.Model.extend({
 				console.error("we've been asigned undefined as our id");
 			}
 			this.us = event.message.id;
+
+			initialConnection.set("us", event.message.id);
 
 			console.log("ConnectionController: initialConnectionReady, us: ",
 				this.us
@@ -109,15 +116,22 @@ Brain.ConnectionController = Backbone.Model.extend({
 				"type": "client",
 				"transport": transport, 
 				"to": id, 
-				"us": this.us
+				"us": this.us, 
+				"usConnection": _.uniqueId()
 			})
 			this.connectionManager.add(rtcClientConnection);
 		}
 
+
+		// console.log("001, ", _.sample( this.connectionManager.models ));
+
+
 		//add a new server connection to listen for incoming connection requests
 		var rtcServerConnection = new Brain.ConnectionWebRTC({
 			"type": "server", 
-			"us": this.us
+			"us": this.us, 
+			"usConneciton": _.uniqueId(),
+			"transport": transport
 		});
 
 		this.connectionManager.add(rtcServerConnection);

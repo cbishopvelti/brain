@@ -5,6 +5,7 @@ namespace("Brain");
 */
 Brain.Connection = Backbone.Model.extend({
 
+
 	send: function(){
 		
 		console.error("Connection: send, unimplemented");
@@ -14,7 +15,7 @@ Brain.Connection = Backbone.Model.extend({
 
 		var message = JSON.parse(messageEvent.data);
 
-		// console.log("onMessage", message);
+		console.log("onMessage", message);
 
 		this.trigger("message", {
 			connection: this, 

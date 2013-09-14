@@ -6,14 +6,14 @@ Brain.WebRTCServer = Brain.WebRTC.extend({
 
 	initialize: function(options){
 
-		console.log("WebRTCServer initialize");
-
 		this.us = options.us;
 
 		this.transport = options.transport;
 
 		this.onOfferMessage = this.onOfferMessage.createDelegate(this);
 		this.onCandidiateMessage = this.onCandidiateMessage.createDelegate(this);
+
+
 
 		this.transport.on("message", this.onCandidiateMessage);
 		this.transport.once("message", this.onOfferMessage);
@@ -36,25 +36,46 @@ Brain.WebRTCServer = Brain.WebRTC.extend({
 		){
 			//this message isn't for us, 
 			//this is once, so we should probably rebind our events
-			console.error("onOfferMessage returned unexpected paramaters");
+			// console.error("onOfferMessage returned unexpected paramaters, ", 
+			// 	event.message.request, 
+			// 	event.message.to
+			// );
+
+			this.once("message", this.onOfferMessage);
+
 			return;
 		}
 
-		if(this.pc == undefined){
-			console.log("initializeRTC");
+		if( 
+			(!_.isUndefined(this.to) && "" + this.to !== "" + event.message.from )
+			|| (
+				!_.isUndefined(this.toConnection) 
+				&& "" + this.toConnection !== "" + event.message.fromConnection
+			)
+		) {
+			throw "Message hasn't been sent to us"
+		}
+		if(_.isUndefined(this.to)) {
+			this.to = event.message.from;
+		}
+		if(_.isUndefined(this.toConnection)){
+			this.toConnection = event.message.fromConnection;
+		}
+
+		if( this.pc == undefined ){
+			this.trigger( "initializeRTC", [this] );
 			this.initializeRTC(); //Sends answer
 		}
 		
 
 		var sdp = JSON.parse(event.message.message);
 
-		console.log("this.pc.setRemoteDescription: ", sdp);
 		this.pc.setRemoteDescription(
 			new RTCSessionDescription( sdp )
 		);
 
 		//add stream and create answer
-		this.pc.addStream(MyStream); //no stream
+		// this.pc.addStream(MyStream); //no stream
 
 		this.pc.createAnswer(
 			this.gotDescription.createDelegate(this)

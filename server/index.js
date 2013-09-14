@@ -78,16 +78,14 @@ wsServer.on('request', function(request){
 	
 	console.log("000", addresses.length);
 
-	var what = "dave";
-
 	connection.on("message", function(rawMessage){
 
 		console.log("000.1", addresses.length);
 
-		console.log(
-			"rawMessage",
-			rawMessage
-		);
+		// console.log(
+		// 	"rawMessage",
+		// 	rawMessage
+		// );
 
 		rawMessage = rawMessage.utf8Data
 
@@ -122,9 +120,7 @@ wsServer.on('request', function(request){
 		}else if(( "" + message.to ) !== "0"){
 			//send the message to the intender recipicante
 
-			console.log( "addresses", addresses.length );
-
-			var toConnection = _.find(addresses, function(item){
+			var toConnection = _.find(addresses.models, function(item){
 
 				console.log(
 					"itemId: ", item.id, message.to
@@ -141,7 +137,7 @@ wsServer.on('request', function(request){
 	 connection.on('close', function(reasonCode, description) {
 
 	 	//remove the connection from the list, as it has been removed
-	 	addresses.remove(id);
+	 	addresses.remove(id); //TODO: add
 
         console.log((new Date()) + ' Peer ' + connection.remoteAddress + ' disconnected.');
     });
